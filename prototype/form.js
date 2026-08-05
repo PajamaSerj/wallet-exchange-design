@@ -7,7 +7,7 @@ function validateAmount(rawValue = dom.sourceAmount.value, activeQuote = quote) 
   const raw = String(rawValue ?? "").trim().replace(/\s+/g, "");
   const direction = getDirection();
   const pair = getPair(direction);
-  const available = availableBalance(pair.source);
+  const available = Math.floor(availableBalance(pair.source));
 
   if (!raw) return { valid: false, message: "Введите исходную сумму." };
   if (raw.includes(".") || raw.includes(",")) {
@@ -34,7 +34,7 @@ function validateAmount(rawValue = dom.sourceAmount.value, activeQuote = quote) 
   if (amount > available) {
     return {
       valid: false,
-      message: `Недостаточно средств. Можно обменять ${formatNumber(available, 1)} ${pair.source}.`
+      message: `Недостаточно средств. Можно обменять ${formatSourceAmount(available)} ${pair.source}.`
     };
   }
 
@@ -87,14 +87,14 @@ function updateForm() {
   const pair = getPair(direction);
   const validation = validateAmount();
   const minimum = minimumSource(direction);
-  const available = availableBalance(pair.source);
+  const available = Math.floor(availableBalance(pair.source));
 
   dom.sourceCurrency.textContent = pair.source;
   dom.targetCurrency.textContent = pair.target;
   dom.amountHelp.textContent = minimum === null
     ? "Минимум: эквивалент 1.0 USDT"
     : `Минимум: ${formatSourceAmount(minimum)} ${pair.source}`;
-  dom.availableHint.textContent = `Можно обменять: ${formatNumber(available, 1)} ${pair.source}`;
+  dom.availableHint.textContent = `Можно обменять: ${formatSourceAmount(available)} ${pair.source}`;
 
   const hasValue = dom.sourceAmount.value.trim() !== "";
   const showError = hasValue && !validation.valid;
@@ -156,7 +156,7 @@ async function onSubmit(event) {
     quote = freshQuote;
     renderQuote();
 
-    const currentAvailable = availableBalance(attempt.pair.source);
+    const currentAvailable = Math.floor(availableBalance(attempt.pair.source));
     if (attempt.sourceAmount > currentAvailable) throw new Error("BALANCE_BECAME_INSUFFICIENT");
 
     attempt.confirmedQuote = { ...freshQuote };
@@ -177,7 +177,8 @@ function handleSubmissionError(error) {
   let outcome = "technical";
   if (error?.message === "BALANCE_BECAME_INSUFFICIENT") {
     const pair = getPair();
-    message = `Баланс изменился. Можно обменять ${formatNumber(availableBalance(pair.source), 1)} ${pair.source}.`;
+    const available = Math.floor(availableBalance(pair.source));
+    message = `Баланс изменился. Можно обменять ${formatSourceAmount(available)} ${pair.source}.`;
     outcome = "balance";
   } else if (error?.message === "DEMO_QUOTE_ERROR" || error?.name === "AbortError" || String(error?.message || "").startsWith("QUOTE_")) {
     message = "Не удалось получить актуальный курс. Заявка не создана.";
