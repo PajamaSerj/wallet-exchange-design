@@ -6,27 +6,22 @@ function renderResult(requestId) {
   }
 
   dom.resultSection.hidden = false;
-  const statusText = {
-    created: "Создана",
-    pending: "На проверке",
-    completed: "Выполнена",
-    rejected: "Отклонена"
-  }[request.status];
+  const statusText = { created: "Создана", pending: "На проверке", completed: "Выполнена", rejected: "Отклонена" }[request.status];
   const targetShown = request.status === "completed" ? request.actualTargetAmount : request.confirmedTargetAmount;
   const rateShown = request.status === "completed" ? request.actualRate : request.confirmedRate;
 
   let message = "";
   let action = "";
   if (request.status === "pending") {
-    message = `Идёт дополнительная проверка. ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency} находится в резерве, доступный баланс уже уменьшен. Фактический курс и результат могут измениться. Пользовательская отмена недоступна.`;
+    message = `${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency} находится в резерве. Фактический результат может измениться.`;
     action = `<button class="button button-primary" type="button" data-finalize="${request.id}">Завершить демо-проверку</button>`;
   } else if (request.status === "completed") {
     const asyncDetail = request.async && request.actualRate !== request.confirmedRate
-      ? ` Подтверждённый курс: ${formatNumber(request.confirmedRate, 2)} RUB за USDT; фактический demo-курс: ${formatNumber(request.actualRate, 2)}.`
+      ? ` Подтверждённый курс: ${formatNumber(request.confirmedRate, 2)}; фактический demo-курс: ${formatNumber(request.actualRate, 2)}.`
       : "";
-    message = `Обмен выполнен. Списано ${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency}, зачислено ${formatNumber(request.actualTargetAmount, 1)} ${request.targetCurrency}.${asyncDetail}`;
+    message = `Списано ${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency}, зачислено ${formatNumber(request.actualTargetAmount, 1)} ${request.targetCurrency}.${asyncDetail}`;
   } else if (request.status === "rejected") {
-    message = `Обмен не выполнен. ${request.targetCurrency} не зачислен, резерв ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency} освобождён, доступный баланс восстановлен.`;
+    message = `Обмен не выполнен. Резерв ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency} освобождён.`;
   }
 
   dom.resultCard.innerHTML = `
@@ -36,9 +31,9 @@ function renderResult(requestId) {
         <span class="status-pill ${request.status}">${statusText}</span>
       </div>
       <div class="result-summary">
-        <div class="result-metric"><span>Исходная сумма</span><strong>${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency}</strong></div>
-        <div class="result-metric"><span>${request.status === "completed" ? "Фактически получено" : "Подтверждено к получению"}</span><strong>${formatNumber(targetShown, 1)} ${request.targetCurrency}</strong></div>
-        <div class="result-metric"><span>${request.status === "completed" ? "Фактический курс" : "Подтверждённый курс"}</span><strong>1 USDT = ${formatNumber(rateShown, 2)} RUB</strong></div>
+        <div class="result-metric"><span>Отдано</span><strong>${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency}</strong></div>
+        <div class="result-metric"><span>${request.status === "completed" ? "Получено" : "Подтверждено"}</span><strong>${formatNumber(targetShown, 1)} ${request.targetCurrency}</strong></div>
+        <div class="result-metric"><span>Курс</span><strong>1 USDT = ${formatNumber(rateShown, 2)} RUB</strong></div>
       </div>
       <p class="result-message">${message}</p>
       <div class="result-actions">${action}</div>
@@ -52,17 +47,23 @@ function renderHistory() {
   dom.historyList.innerHTML = requests.map((request) => {
     const statusLabel = { created: "Создана", pending: "Pending", completed: "Completed", rejected: "Rejected" }[request.status];
     const target = request.actualTargetAmount ?? request.confirmedTargetAmount;
-    let details = `Курс: ${formatNumber(request.confirmedRate, 2)} RUB/USDT`;
-    if (request.status === "pending") details += ` · Резерв: ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency}`;
-    if (request.async && request.status === "completed" && request.actualRate !== request.confirmedRate) {
-      details += ` · Факт: ${formatNumber(request.actualRate, 2)} RUB/USDT`;
-    }
+    const reserve = request.status === "pending" ? `<span>Резерв: ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency}</span>` : "";
+    const fact = request.async && request.status === "completed" && request.actualRate !== request.confirmedRate
+      ? `<span>Фактический курс: ${formatNumber(request.actualRate, 2)} RUB/USDT</span>` : "";
     return `
       <article class="history-item" data-request-id="${request.id}">
-        <div><strong>${request.id}</strong><div class="history-id">${request.operationKey}</div></div>
-        <div class="history-direction"><strong>${request.sourceCurrency} → ${request.targetCurrency}</strong><small>${formatDate(request.createdAt)}</small></div>
-        <div class="history-amounts"><strong>${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency} → ${formatNumber(target, 1)} ${request.targetCurrency}</strong><small>${details}</small></div>
+        <div class="history-main">
+          <strong>${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency} → ${formatNumber(target, 1)} ${request.targetCurrency}</strong>
+          <small>${formatDate(request.createdAt)} · ${request.sourceCurrency} → ${request.targetCurrency}</small>
+        </div>
         <span class="status-pill ${request.status}">${statusLabel}</span>
+        <div class="history-details">
+          <span>Заявка: ${request.id}</span>
+          <span>Котировка: ${request.confirmedQuoteId}</span>
+          <span>Курс: ${formatNumber(request.confirmedRate, 2)} RUB/USDT</span>
+          ${reserve}${fact}
+          <button class="history-open" type="button" data-open-result="${request.id}">Открыть результат</button>
+        </div>
       </article>`;
   }).join("");
 }
@@ -75,6 +76,31 @@ function pluralize(number, forms) {
   return forms[2];
 }
 
+function renderBalanceControls() {
+  if (!dom.demoBalanceControls) return;
+  dom.demoBalanceControls.innerHTML = ["RUB", "USDT"].map((currency) => {
+    const balance = state.balances[currency];
+    const canShow = balance.total > 0;
+    const checked = canShow && state.walletVisibility[currency];
+    return `
+      <div class="balance-control" data-balance-control="${currency}">
+        <div class="balance-control-head">
+          <strong>${currency}</strong>
+          <span>Баланс ${formatNumber(balance.total, 1)} · резерв ${formatNumber(balance.reserved, 1)}</span>
+        </div>
+        <div class="balance-adjust">
+          <input type="number" min="1" step="1" value="${currency === "RUB" ? 1000 : 10}" data-balance-amount="${currency}" aria-label="Сумма изменения баланса ${currency}">
+          <button type="button" data-balance-action="add" data-currency="${currency}" aria-label="Пополнить ${currency}">+</button>
+          <button type="button" data-balance-action="subtract" data-currency="${currency}" aria-label="Уменьшить ${currency}">−</button>
+        </div>
+        <label class="wallet-visibility">
+          <span>${canShow ? "Показывать кошелёк" : "Сначала добавьте баланс"}</span>
+          <input type="checkbox" data-wallet-visibility="${currency}" ${checked ? "checked" : ""} ${canShow ? "" : "disabled"}>
+        </label>
+      </div>`;
+  }).join("");
+}
+
 function renderDemo() {
   dom.demoAsync.checked = state.demo.async;
   dom.asyncOptions.hidden = !state.demo.async;
@@ -83,37 +109,94 @@ function renderDemo() {
   dom.demoQuoteError.checked = state.demo.quoteError;
   dom.demoTechnicalError.checked = state.demo.technicalError;
   dom.repeatLastAttempt.disabled = !state.lastAttemptKey;
-}
-
-function renderEquivalentButtons() {
-  dom.equivalentButtons.forEach((button) => {
-    const active = button.dataset.equivalent === state.equivalentCurrency;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
+  renderBalanceControls();
 }
 
 function renderAll(resultId = null) {
   renderBalances();
-  renderEquivalentButtons();
   renderDemo();
   renderHistory();
   renderResult(resultId);
   updateForm();
 }
 
+function showSettings() {
+  if (typeof dom.settingsDialog.showModal === "function") dom.settingsDialog.showModal();
+  else dom.settingsDialog.setAttribute("open", "");
+}
+
+function closeSettings() {
+  if (typeof dom.settingsDialog.close === "function") dom.settingsDialog.close();
+  else dom.settingsDialog.removeAttribute("open");
+}
+
+function adjustBalance(currency, action) {
+  const input = dom.demoBalanceControls.querySelector(`[data-balance-amount="${currency}"]`);
+  const amount = Math.floor(Number(input?.value));
+  if (!Number.isFinite(amount) || amount <= 0) {
+    dom.demoFeedback.textContent = "Укажите положительную целую сумму изменения баланса.";
+    return;
+  }
+
+  const balance = state.balances[currency];
+  if (action === "add") {
+    balance.total = normalizeMoney(balance.total + amount);
+    dom.demoFeedback.textContent = `${currency} пополнен на ${formatSourceAmount(amount)}.`;
+  } else {
+    const removable = availableBalance(currency);
+    const removed = Math.min(amount, removable);
+    balance.total = normalizeMoney(balance.total - removed);
+    dom.demoFeedback.textContent = removed > 0
+      ? `${currency} уменьшен на ${formatSourceAmount(removed)}.`
+      : `Нельзя уменьшить ${currency}: весь доступный остаток зарезервирован или равен нулю.`;
+  }
+
+  if (balance.total <= 0) {
+    balance.total = 0;
+    state.walletVisibility[currency] = false;
+  }
+  saveState();
+  renderAll();
+}
+
+function convertedBalance(currency) {
+  if (!quote) return null;
+  const total = state.balances[currency].total;
+  return currency === "RUB"
+    ? { value: total / quote.rate, currency: "USDT" }
+    : { value: total * quote.rate, currency: "RUB" };
+}
+
+function startBalancePreview(button) {
+  if (balancePreview || !quote) return;
+  const currency = button.dataset.balancePreview;
+  const amountNode = dom.balanceGrid.querySelector(`[data-wallet-amount="${currency}"]`);
+  const converted = convertedBalance(currency);
+  if (!amountNode || !converted) return;
+  balancePreview = { button, amountNode, original: amountNode.textContent, tooltipTimer: null };
+  amountNode.textContent = `≈ ${formatNumber(converted.value, 1)} ${converted.currency}`;
+  balancePreview.tooltipTimer = window.setTimeout(() => button.classList.add("show-tooltip"), 450);
+}
+
+function stopBalancePreview() {
+  if (!balancePreview) return;
+  window.clearTimeout(balancePreview.tooltipTimer);
+  balancePreview.amountNode.textContent = balancePreview.original;
+  balancePreview.button.classList.remove("show-tooltip");
+  balancePreview = null;
+}
+
 function bindEvents() {
   dom.sourceAmount.addEventListener("input", updateForm);
-  dom.sourceAmount.addEventListener("blur", () => {
-    const validation = validateAmount();
-    if (!validation.valid && dom.sourceAmount.value.trim()) updateForm();
-  });
+  dom.sourceAmount.addEventListener("blur", updateForm);
 
-  dom.directionInputs.forEach((input) => input.addEventListener("change", () => {
+  dom.swapDirection.addEventListener("click", () => {
+    setDirection(getDirection() === "RUB_USDT" ? "USDT_RUB" : "RUB_USDT");
     dom.sourceAmount.value = "";
     dom.formStatus.textContent = "";
     updateForm();
-  }));
+    dom.sourceAmount.focus();
+  });
 
   dom.exchangeAll.addEventListener("click", () => {
     const pair = getPair();
@@ -124,8 +207,12 @@ function bindEvents() {
 
   dom.exchangeForm.addEventListener("submit", onSubmit);
   dom.confirmOperation.addEventListener("click", confirmPendingAttempt);
-  dom.confirmationModal.addEventListener("close", () => {
-    if (!isProcessing) pendingConfirmation = null;
+  dom.confirmationModal.addEventListener("close", () => { if (!isProcessing) pendingConfirmation = null; });
+
+  dom.settingsOpen.addEventListener("click", showSettings);
+  dom.settingsClose.addEventListener("click", closeSettings);
+  dom.settingsDialog.addEventListener("click", (event) => {
+    if (event.target === dom.settingsDialog) closeSettings();
   });
 
   dom.demoAsync.addEventListener("change", () => {
@@ -133,22 +220,49 @@ function bindEvents() {
     dom.asyncOptions.hidden = !state.demo.async;
     saveState();
   });
-  dom.demoTerminal.addEventListener("change", () => {
-    state.demo.terminal = dom.demoTerminal.value;
-    saveState();
+  dom.demoTerminal.addEventListener("change", () => { state.demo.terminal = dom.demoTerminal.value; saveState(); });
+  dom.demoRateChange.addEventListener("change", () => { state.demo.rateChange = dom.demoRateChange.checked; saveState(); });
+  dom.demoQuoteError.addEventListener("change", () => { state.demo.quoteError = dom.demoQuoteError.checked; saveState(); });
+  dom.demoTechnicalError.addEventListener("change", () => { state.demo.technicalError = dom.demoTechnicalError.checked; saveState(); });
+
+  dom.demoBalanceControls.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-balance-action]");
+    if (button) adjustBalance(button.dataset.currency, button.dataset.balanceAction);
   });
-  dom.demoRateChange.addEventListener("change", () => {
-    state.demo.rateChange = dom.demoRateChange.checked;
+  dom.demoBalanceControls.addEventListener("change", (event) => {
+    const checkbox = event.target.closest("[data-wallet-visibility]");
+    if (!checkbox) return;
+    const currency = checkbox.dataset.walletVisibility;
+    if (state.balances[currency].total <= 0) {
+      checkbox.checked = false;
+      dom.demoFeedback.textContent = `Пустой кошелёк ${currency} нельзя показать. Сначала добавьте баланс.`;
+      return;
+    }
+    state.walletVisibility[currency] = checkbox.checked;
     saveState();
+    renderBalances();
   });
-  dom.demoQuoteError.addEventListener("change", () => {
-    state.demo.quoteError = dom.demoQuoteError.checked;
-    saveState();
+
+  dom.balanceGrid.addEventListener("pointerdown", (event) => {
+    const button = event.target.closest("[data-balance-preview]");
+    if (!button) return;
+    event.preventDefault();
+    button.setPointerCapture?.(event.pointerId);
+    startBalancePreview(button);
   });
-  dom.demoTechnicalError.addEventListener("change", () => {
-    state.demo.technicalError = dom.demoTechnicalError.checked;
-    saveState();
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach((type) => {
+    dom.balanceGrid.addEventListener(type, stopBalancePreview);
   });
+  dom.balanceGrid.addEventListener("keydown", (event) => {
+    const button = event.target.closest("[data-balance-preview]");
+    if (!button || ![" ", "Enter"].includes(event.key)) return;
+    event.preventDefault();
+    startBalancePreview(button);
+  });
+  dom.balanceGrid.addEventListener("keyup", (event) => {
+    if ([" ", "Enter"].includes(event.key)) stopBalancePreview();
+  });
+  dom.balanceGrid.addEventListener("focusout", stopBalancePreview);
 
   dom.repeatLastAttempt.addEventListener("click", () => {
     const key = state.lastAttemptKey;
@@ -158,7 +272,7 @@ function bindEvents() {
     const before = JSON.stringify(state.balances);
     const returned = processAttempt({ key });
     const unchanged = before === JSON.stringify(state.balances);
-    dom.demoFeedback.textContent = `Возвращена существующая заявка ${returned.id}. Баланс и резерв ${unchanged ? "не изменены" : "проверены"}.`;
+    dom.demoFeedback.textContent = `Возвращена заявка ${returned.id}. Баланс и резерв ${unchanged ? "не изменены" : "проверены"}.`;
     renderResult(returned.id);
     announce("Повторный ключ вернул существующую заявку без нового финансового эффекта.");
   });
@@ -169,19 +283,11 @@ function bindEvents() {
   });
 
   dom.historyList.addEventListener("click", (event) => {
-    const item = event.target.closest("[data-request-id]");
-    if (item) {
-      renderResult(item.dataset.requestId);
-      dom.resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    const button = event.target.closest("[data-open-result]");
+    if (!button) return;
+    renderResult(button.dataset.openResult);
+    dom.resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-
-  dom.equivalentButtons.forEach((button) => button.addEventListener("click", () => {
-    state.equivalentCurrency = button.dataset.equivalent;
-    saveState();
-    renderEquivalentButtons();
-    renderBalances();
-  }));
 
   dom.resetDemo.addEventListener("click", () => {
     const confirmed = window.confirm("Сбросить тестовые балансы, резервы, историю и demo-настройки?");
