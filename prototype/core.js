@@ -1,25 +1,19 @@
 "use strict";
 
-/*
- * Wallet Exchange prototype
- * Logical sections: DOM, state, formatting, quotes, calculation/validation,
- * balances/reserves, requests/statuses, history/localStorage, demo controls.
- */
-
 const STORAGE_KEY = "wallet-exchange-demo-v3";
 const COINGECKO_ENDPOINT = "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=rub&include_last_updated_at=true";
 const REQUEST_TIMEOUT_MS = 8000;
 
 const DEFAULT_STATE = Object.freeze({
-  version: 3,
+  version: 4,
   balances: {
     RUB: { total: 250000, reserved: 0 },
     USDT: { total: 1250, reserved: 0 }
   },
+  walletVisibility: { RUB: true, USDT: true },
   requests: [],
   processedKeys: {},
   lastAttemptKey: null,
-  equivalentCurrency: "RUB",
   demo: {
     async: false,
     terminal: "completed",
@@ -35,6 +29,7 @@ let quote = null;
 let isQuoteLoading = false;
 let isProcessing = false;
 let pendingConfirmation = null;
+let balancePreview = null;
 
 function cloneDefaultState() {
   return JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -45,13 +40,18 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return cloneDefaultState();
     const parsed = JSON.parse(raw);
-    if (!parsed || parsed.version !== DEFAULT_STATE.version) return cloneDefaultState();
+    if (!parsed || ![3, DEFAULT_STATE.version].includes(parsed.version)) return cloneDefaultState();
     return {
       ...cloneDefaultState(),
       ...parsed,
+      version: DEFAULT_STATE.version,
       balances: {
         RUB: { ...DEFAULT_STATE.balances.RUB, ...(parsed.balances?.RUB || {}) },
         USDT: { ...DEFAULT_STATE.balances.USDT, ...(parsed.balances?.USDT || {}) }
+      },
+      walletVisibility: {
+        RUB: parsed.walletVisibility?.RUB !== false,
+        USDT: parsed.walletVisibility?.USDT !== false
       },
       demo: { ...DEFAULT_STATE.demo, ...(parsed.demo || {}) },
       requests: Array.isArray(parsed.requests) ? parsed.requests : [],
@@ -73,18 +73,19 @@ function saveState() {
 
 function cacheDom() {
   const ids = [
-    "balance-grid", "wallet-equivalent", "wallet-equivalent-note", "quote-panel", "quote-status-dot",
-    "quote-value", "quote-updated", "quote-id", "exchange-form", "source-amount", "source-currency",
-    "target-amount", "target-currency", "amount-help", "available-hint", "amount-error", "money-input-wrap",
-    "exchange-all", "submit-exchange", "form-status", "demo-async", "async-options", "demo-terminal",
-    "demo-rate-change", "demo-quote-error", "demo-technical-error", "repeat-last-attempt", "demo-feedback",
-    "result-section", "result-card", "history-count", "history-empty", "history-list", "confirmation-modal",
-    "confirmation-form", "confirmation-title", "confirmation-eyebrow", "confirmation-content", "confirm-operation",
+    "balance-grid", "quote-panel", "quote-status-dot", "quote-value", "quote-updated", "quote-id",
+    "exchange-form", "source-amount", "source-currency", "target-amount", "target-currency",
+    "target-result", "target-placeholder", "amount-help", "available-hint", "amount-error",
+    "money-input-wrap", "exchange-all", "swap-direction", "submit-exchange", "form-status",
+    "settings-open", "settings-close", "settings-dialog", "demo-balance-controls", "demo-async",
+    "async-options", "demo-terminal", "demo-rate-change", "demo-quote-error", "demo-technical-error",
+    "repeat-last-attempt", "demo-feedback", "result-section", "result-card", "history-details",
+    "history-count", "history-empty", "history-list", "confirmation-modal", "confirmation-form",
+    "confirmation-title", "confirmation-eyebrow", "confirmation-content", "confirm-operation",
     "live-region", "reset-demo"
   ];
   ids.forEach((id) => { dom[toCamel(id)] = document.getElementById(id); });
   dom.directionInputs = [...document.querySelectorAll('input[name="direction"]')];
-  dom.equivalentButtons = [...document.querySelectorAll("[data-equivalent]")];
 }
 
 function toCamel(value) {
@@ -93,6 +94,10 @@ function toCamel(value) {
 
 function getDirection() {
   return dom.directionInputs.find((input) => input.checked)?.value || "RUB_USDT";
+}
+
+function setDirection(direction) {
+  dom.directionInputs.forEach((input) => { input.checked = input.value === direction; });
 }
 
 function getPair(direction = getDirection()) {
@@ -149,15 +154,15 @@ function announce(message) {
 }
 
 function setQuoteVisual(status, message = "") {
-  dom.quoteStatusDot.className = `status-dot${status ? ` is-${status}` : ""}`;
-  dom.quotePanel.classList.toggle("is-error", status === "error");
+  if (dom.quoteStatusDot) dom.quoteStatusDot.className = `status-dot${status ? ` is-${status}` : ""}`;
+  if (dom.quotePanel) dom.quotePanel.classList.toggle("is-error", status === "error");
   if (message) dom.formStatus.textContent = message;
 }
 
 async function fetchQuote({ recheck = false } = {}) {
   if (state.demo.quoteError) {
     state.demo.quoteError = false;
-    dom.demoQuoteError.checked = false;
+    if (dom.demoQuoteError) dom.demoQuoteError.checked = false;
     saveState();
     throw new Error("DEMO_QUOTE_ERROR");
   }
@@ -196,14 +201,14 @@ async function loadInitialQuote() {
   isQuoteLoading = true;
   setQuoteVisual("loading");
   dom.quoteValue.textContent = "Загрузка курса…";
-  dom.quoteUpdated.textContent = "Подключение к CoinGecko";
-  dom.quoteId.textContent = "Котировка: —";
+  dom.quoteUpdated.dataset.tooltip = "Курс загружается";
+  dom.quoteUpdated.setAttribute("aria-label", "Курс загружается");
+  dom.quoteId.textContent = "";
   updateForm();
 
   try {
     quote = await fetchQuote();
     renderQuote();
-    setQuoteVisual("ready", "Курс загружен.");
   } catch (error) {
     quote = null;
     renderQuoteError(error);
@@ -216,18 +221,22 @@ async function loadInitialQuote() {
 function renderQuote() {
   if (!quote) return;
   dom.quoteValue.textContent = `1 USDT = ${formatNumber(quote.rate, 2)} RUB`;
-  dom.quoteUpdated.textContent = `Обновлено ${formatDate(quote.sourceUpdatedAt)}`;
-  dom.quoteId.textContent = `Котировка: ${quote.id}`;
-  if (quote.demoAdjusted) dom.quoteId.textContent += " · demo +1.5%";
+  const updatedText = `Обновлено ${formatDate(quote.sourceUpdatedAt)}`;
+  dom.quoteUpdated.dataset.tooltip = updatedText;
+  dom.quoteUpdated.setAttribute("aria-label", updatedText);
+  dom.quoteId.textContent = quote.id;
   setQuoteVisual("ready");
   renderBalances();
+  renderBalanceControls();
 }
 
 function renderQuoteError(error) {
   const timedOut = error?.name === "AbortError";
   dom.quoteValue.textContent = "Курс недоступен";
-  dom.quoteUpdated.textContent = timedOut ? "CoinGecko не ответил вовремя" : "Не удалось получить корректную котировку";
-  dom.quoteId.textContent = "Заявка не может быть создана";
+  const detail = timedOut ? "CoinGecko не ответил вовремя" : "Не удалось получить корректную котировку";
+  dom.quoteUpdated.dataset.tooltip = detail;
+  dom.quoteUpdated.setAttribute("aria-label", detail);
+  dom.quoteId.textContent = "";
   setQuoteVisual("error", "Не удалось получить курс. Обмен не создан.");
   announce("Не удалось получить курс. Обмен недоступен.");
 }
