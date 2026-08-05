@@ -11,7 +11,7 @@
 | CHAT-03 | UX/UI | [`chat-03-ux-ui.md`](chats/chat-03-ux-ui.md), [`manual review`](chats/chat-03-ux-ui-review.md) | COMPLETED — MANUALLY ACCEPTED / PUBLICATION CHECK PENDING | финальный прототип, UX-spec, governance, Pages workflow и public smoke |
 | CHAT-04 | Gherkin | [`chat-04-gherkin.md`](chats/chat-04-gherkin.md) | COMPLETED | 3 согласованных Gherkin-сценария и этапный Prompt Log |
 | CHAT-05 | OpenAPI | [`chat-05-openapi.md`](chats/chat-05-openapi.md) | COMPLETED | OpenAPI JSON, 3 файла примеров и этапный Prompt Log |
-| CHAT-06 | Integration | [`chat-06-integration.md`](chats/chat-06-integration.md) | NOT STARTED | TBD |
+| CHAT-06 | Integration | [`chat-06-integration.md`](chats/chat-06-integration.md) | COMPLETED — CONSISTENT WITHIN CHAT-06 SCOPE | матрица `INT-01`–`INT-13`, issues, governance evidence и повторная проверка |
 | CHAT-07 | Final Audit | [`chat-07-final-audit.md`](chats/chat-07-final-audit.md) | NOT STARTED | TBD |
 
 ## Сводная запись CHAT-01
@@ -81,5 +81,20 @@
 | Противоречия | Блокирующих нет; `OQ-M-01`/`OQ-M-02` не блокируют API |
 | Ключевые исправления ИИ | `rejected` сохранён как business success; исключены demo-поля, security, лишние endpoints/error codes и неподтверждённые будущие поля |
 | Следующие чаты | CHAT-06 и CHAT-07 не начинались |
+
+## Сводная запись CHAT-06
+
+| Поле | Значение |
+|---|---|
+| Цель | Проверить межартефактную согласованность результатов CHAT-01–CHAT-05 без пересмотра бизнес-логики и без начала финального аудита |
+| Исходный `main` | `06aa520a9754a7dca4670912ac6a0a572e1fce79` |
+| Основные источники | Бриф, governance, SDD и Mermaid, финальный UX/UI и prototype source/public smoke, 3 Gherkin-сценария, OpenAPI/examples, Prompt Logs CHAT-01–05 |
+| Метод | Матрица `INT-01`–`INT-13`, отдельные `INT-ISSUE-*`, severity, минимальные действия и полный повторный проход |
+| Результат | `CONSISTENT WITHIN CHAT-06 SCOPE`; `CRITICAL` и `MAJOR` не обнаружены; `VERIFIED` не установлен |
+| Расхождения | `INT-ISSUE-001` MINOR — устаревшая этапная навигация README, `ACCEPTED AS IS`; `INT-ISSUE-002`/`003` MINOR — stale acceptance/traceability evidence, `RESOLVED` |
+| Изменения | Только `acceptance-checklist.md`, `traceability-matrix.md`, `chat-06-integration.md` и эта строка/сводная запись |
+| Проверки | Base-main Quality gates и Pages/public smoke success; Gherkin structure; OpenAPI/JSON/examples profile evidence; независимый расчёт `10000 / 96.45 = 103.680663… → 103.7`; итоговый diff scope |
+| Намеренно не изменено | Бриф, README, requirements/decisions, SDD/diagrams, UX/prototype, Gherkin, OpenAPI/examples, screenshots, QA-файлы и CHAT-07 |
+| Следующий чат | CHAT-07 не начинался; независимый финальный аудит остаётся отдельным этапом |
 
 Каждый журнал содержит цель, входы, использованные промпты, результаты, допущения ИИ, ошибки или риски, способ обнаружения, ручные исправления, нерешённые вопросы и связанные требования.
