@@ -12,4 +12,19 @@
     overflow-wrap: anywhere;
     word-break: break-word;
   }
+
+  [data-tooltip]::after {
+    position: fixed;
+    left: 50vw;
+    right: auto;
+    bottom: 16px;
+    width: min(240px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    transform: translateX(-50%);
+    white-space: normal;
+  }
+
+  [data-tooltip]::before {
+    display: none;
+  }
 }
