@@ -43,7 +43,7 @@ if (targetPrompt) {
 }
 
 await page.locator("#swap-direction").click();
-const usdtAvailableHint = (await page.locator("#available-hint").textContent())?.trim();
+const usdtAvailableHint = (await page.locator("#available-hint").textContent())?.trim().replace(/\s+/g, " ");
 if (usdtAvailableHint !== "Можно обменять: 1 250 USDT") {
   throw new Error(`Unexpected integer exchangeable balance: ${usdtAvailableHint}`);
 }
