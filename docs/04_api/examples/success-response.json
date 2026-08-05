@@ -1,4 +1,19 @@
 {
-  "_status": "SCAFFOLD",
-  "_note": "Success response example has not been designed yet."
+  "requestId": "EX-20260806-000001",
+  "status": "completed",
+  "sourceCurrency": "RUB",
+  "targetCurrency": "USDT",
+  "sourceAmount": 10000,
+  "confirmedTargetAmount": 103.7,
+  "confirmedRate": 96.45,
+  "confirmedQuoteId": "Q-20260806-083000-001",
+  "quoteUpdatedAt": "2026-08-06T08:30:00Z",
+  "createdAt": "2026-08-06T08:30:12Z",
+  "confirmedAt": "2026-08-06T08:30:12Z",
+  "result": {
+    "type": "completed",
+    "actualTargetAmount": 103.7,
+    "actualRate": 96.45,
+    "completedAt": "2026-08-06T08:30:12Z"
+  }
 }

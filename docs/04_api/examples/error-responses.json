@@ -1,4 +1,41 @@
 {
-  "_status": "SCAFFOLD",
-  "_note": "Error response examples have not been designed yet."
+  "invalidRequest": {
+    "code": "INVALID_REQUEST",
+    "message": "Запрос содержит некорректные данные.",
+    "requestCreated": false,
+    "fieldErrors": [
+      {
+        "field": "sourceAmount",
+        "message": "Исходная сумма должна быть положительным целым числом и соответствовать минимальному объёму."
+      }
+    ]
+  },
+  "insufficientBalance": {
+    "code": "INSUFFICIENT_BALANCE",
+    "message": "Недостаточно доступных средств для создания заявки.",
+    "requestCreated": false,
+    "sourceCurrency": "RUB",
+    "availableBalance": 7500
+  },
+  "conditionsChanged": {
+    "code": "EXCHANGE_CONDITIONS_CHANGED",
+    "message": "Отображаемый результат обмена изменился. Требуется согласие с новыми условиями.",
+    "requestCreated": false,
+    "latestConditions": {
+      "quoteId": "Q-20260806-083011-002",
+      "rate": 97.1,
+      "quoteUpdatedAt": "2026-08-06T08:30:11Z",
+      "targetAmount": 103.0
+    }
+  },
+  "rateUnavailable": {
+    "code": "RATE_UNAVAILABLE",
+    "message": "Не удалось безопасно подтвердить актуальные условия обмена. Заявка не создана.",
+    "requestCreated": false
+  },
+  "internalError": {
+    "code": "INTERNAL_ERROR",
+    "message": "Не удалось обработать запрос. Повторите попытку позднее или обратитесь в поддержку.",
+    "requestCreated": false
+  }
 }

@@ -1,4 +1,13 @@
 {
-  "_status": "SCAFFOLD",
-  "_note": "Request example has not been designed yet."
+  "walletId": "wallet-demo-001",
+  "sourceCurrency": "RUB",
+  "targetCurrency": "USDT",
+  "sourceAmount": 10000,
+  "confirmedConditions": {
+    "quoteId": "Q-20260806-083000-001",
+    "rate": 96.45,
+    "quoteUpdatedAt": "2026-08-06T08:30:00Z",
+    "targetAmount": 103.7
+  },
+  "balanceVersion": "bal-v-0001842"
 }
