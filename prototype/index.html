@@ -13,118 +13,129 @@
 
   <header class="app-header">
     <div class="header-inner">
-      <div>
-        <p class="eyebrow">Демонстрационный кошелёк</p>
-        <h1>Обмен валюты</h1>
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">W</span>
+        <div>
+          <p class="eyebrow">Демонстрационный кошелёк</p>
+          <h1>Обмен валюты</h1>
+        </div>
       </div>
-      <button class="button button-secondary button-small" id="reset-demo" type="button">Сбросить демо-данные</button>
+      <button class="icon-button settings-button" id="settings-open" type="button" aria-label="Открыть демонстрационные настройки" title="Демонстрационные настройки">⚙</button>
     </div>
   </header>
 
   <main class="app-shell">
-    <section class="wallet-summary" aria-labelledby="wallet-heading">
-      <div class="section-heading-row">
-        <div>
-          <p class="eyebrow">Тестовые данные</p>
-          <h2 id="wallet-heading">Кошелёк</h2>
-        </div>
-        <div class="equivalent-control" role="group" aria-label="Валюта общего эквивалента">
-          <span class="equivalent-label">Примерно</span>
-          <button class="segmented-button is-active" type="button" data-equivalent="RUB" aria-pressed="true">RUB</button>
-          <button class="segmented-button" type="button" data-equivalent="USDT" aria-pressed="false">USDT</button>
-        </div>
-      </div>
-
-      <div class="wallet-total">
-        <strong id="wallet-equivalent">—</strong>
-        <span id="wallet-equivalent-note">Ориентировочная стоимость по текущему курсу</span>
-      </div>
-
+    <section class="wallet-strip" aria-labelledby="wallet-heading">
+      <h2 class="sr-only" id="wallet-heading">Кошельки</h2>
       <div class="balance-grid" id="balance-grid" aria-live="polite"></div>
     </section>
 
-    <div class="content-grid">
-      <section class="exchange-card" aria-labelledby="exchange-heading">
-        <div class="section-heading-row compact">
-          <div>
-            <p class="eyebrow">RUB ↔ USDT</p>
-            <h2 id="exchange-heading">Новая заявка</h2>
-          </div>
-          <span class="status-dot" id="quote-status-dot" aria-hidden="true"></span>
+    <section class="exchange-card" aria-labelledby="exchange-heading">
+      <div class="exchange-heading">
+        <div>
+          <p class="eyebrow">RUB ↔ USDT</p>
+          <h2 id="exchange-heading">Обмен</h2>
+        </div>
+        <span class="status-dot" id="quote-status-dot" aria-hidden="true" hidden></span>
+      </div>
+
+      <form id="exchange-form" novalidate>
+        <div class="sr-only" aria-hidden="true">
+          <input type="radio" name="direction" value="RUB_USDT" checked>
+          <input type="radio" name="direction" value="USDT_RUB">
         </div>
 
-        <div class="quote-panel" id="quote-panel" aria-live="polite">
-          <div>
-            <span class="meta-label">Текущий курс</span>
-            <strong id="quote-value">Загрузка курса…</strong>
-          </div>
-          <div class="quote-meta">
-            <span id="quote-updated">Подключение к CoinGecko</span>
-            <span id="quote-id">Котировка: —</span>
-          </div>
-        </div>
-
-        <form id="exchange-form" novalidate>
-          <fieldset class="direction-fieldset">
-            <legend>Направление обмена</legend>
-            <div class="direction-switch" role="radiogroup" aria-label="Направление обмена">
-              <label class="direction-option">
-                <input type="radio" name="direction" value="RUB_USDT" checked>
-                <span><strong>RUB</strong><small>в USDT</small></span>
-              </label>
-              <label class="direction-option">
-                <input type="radio" name="direction" value="USDT_RUB">
-                <span><strong>USDT</strong><small>в RUB</small></span>
-              </label>
+        <div class="exchange-pair">
+          <section class="currency-panel source-panel" aria-labelledby="source-label">
+            <div class="currency-panel-top">
+              <span class="panel-label" id="source-label">Вы отдаёте</span>
+              <button class="text-button" id="exchange-all" type="button">Всё</button>
             </div>
-          </fieldset>
-
-          <div class="amount-block">
-            <div class="label-row">
-              <label for="source-amount">Вы отдаёте</label>
-              <button class="text-button" id="exchange-all" type="button">Обменять всё</button>
-            </div>
-            <div class="money-input" id="money-input-wrap">
-              <input id="source-amount" name="sourceAmount" type="text" inputmode="numeric" autocomplete="off" aria-describedby="amount-help amount-error" placeholder="0">
-              <span id="source-currency">RUB</span>
+            <div class="currency-line">
+              <span class="currency-chip" id="source-currency">RUB</span>
+              <div class="money-input" id="money-input-wrap">
+                <input id="source-amount" name="sourceAmount" type="text" inputmode="numeric" autocomplete="off" aria-describedby="amount-help amount-error" placeholder="0">
+              </div>
             </div>
             <div class="input-support-row">
               <span id="amount-help">Минимум: —</span>
-              <span id="available-hint">Доступно: —</span>
+              <span id="available-hint">Можно обменять: —</span>
             </div>
             <p class="field-error" id="amount-error" role="alert"></p>
-          </div>
+          </section>
 
-          <div class="result-block" aria-live="polite">
-            <span class="meta-label">Вы получите</span>
-            <div class="result-value">
-              <strong id="target-amount">0.0</strong>
-              <span id="target-currency">USDT</span>
+          <button class="swap-button" id="swap-direction" type="button" aria-label="Поменять валюты местами" title="Поменять направление обмена">⇄</button>
+
+          <section class="currency-panel target-panel" aria-labelledby="target-label">
+            <div class="currency-panel-top">
+              <span class="panel-label" id="target-label">Вы получите</span>
             </div>
-            <span class="result-note">Комиссия и спред отсутствуют</span>
-          </div>
+            <div class="currency-line">
+              <span class="currency-chip" id="target-currency">USDT</span>
+              <div class="target-placeholder" id="target-placeholder">Введите сумму</div>
+              <div class="target-result" id="target-result" hidden>
+                <strong id="target-amount">0.0</strong>
+              </div>
+            </div>
+            <p class="target-note">Без комиссии и спреда</p>
+          </section>
+        </div>
 
-          <button class="button button-primary button-wide" id="submit-exchange" type="submit" disabled>
-            <span class="button-label">Проверить условия</span>
-            <span class="button-spinner" aria-hidden="true"></span>
-          </button>
-          <p class="form-status" id="form-status" aria-live="polite"></p>
-        </form>
+        <button class="button button-primary button-wide exchange-submit" id="submit-exchange" type="submit" disabled>
+          <span class="button-label">Обмен</span>
+          <span class="button-spinner" aria-hidden="true"></span>
+        </button>
+
+        <div class="quote-panel" id="quote-panel" aria-live="polite">
+          <span id="quote-value">Загрузка курса…</span>
+          <button class="quote-info" id="quote-updated" type="button" aria-label="Время обновления курса" data-tooltip="Курс загружается">ⓘ</button>
+          <span id="quote-id" hidden></span>
+        </div>
+        <p class="form-status" id="form-status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="result-section" id="result-section" aria-labelledby="result-heading" hidden>
+      <div class="section-heading-row compact">
+        <h2 id="result-heading">Последняя заявка</h2>
+      </div>
+      <div id="result-card"></div>
+    </section>
+
+    <details class="history-section" id="history-details">
+      <summary>
+        <span>История заявок</span>
+        <span class="history-count" id="history-count">0 заявок</span>
+      </summary>
+      <div class="history-body">
+        <div class="history-empty" id="history-empty">История пока пуста. Созданные заявки сохранятся в этом браузере.</div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </details>
+  </main>
+
+  <dialog class="settings-drawer" id="settings-dialog" aria-labelledby="settings-heading">
+    <div class="settings-shell">
+      <div class="settings-heading">
+        <div>
+          <p class="eyebrow">Только демонстрация</p>
+          <h2 id="settings-heading">Настройки сценариев</h2>
+        </div>
+        <button class="icon-button" id="settings-close" type="button" aria-label="Закрыть настройки">×</button>
+      </div>
+      <p class="settings-intro">Эти элементы не являются финансовыми правилами продукта.</p>
+
+      <section class="settings-group" aria-labelledby="balance-settings-heading">
+        <h3 id="balance-settings-heading">Кошельки и балансы</h3>
+        <div id="demo-balance-controls"></div>
       </section>
 
-      <aside class="demo-panel" aria-labelledby="demo-heading">
-        <div class="demo-badge">Только демонстрация</div>
-        <h2 id="demo-heading">Управление сценариями</h2>
-        <p>Эти настройки не являются финансовыми правилами продукта и нужны только для воспроизводимой проверки состояний.</p>
-
+      <section class="settings-group" aria-labelledby="scenario-settings-heading">
+        <h3 id="scenario-settings-heading">Сценарии</h3>
         <label class="toggle-row">
-          <span>
-            <strong>Дополнительная проверка</strong>
-            <small>Создать заявку со статусом pending</small>
-          </span>
+          <span><strong>Дополнительная проверка</strong><small>Создать заявку со статусом pending</small></span>
           <input id="demo-async" type="checkbox" role="switch">
         </label>
-
         <div class="demo-subsection" id="async-options" hidden>
           <label for="demo-terminal">Результат проверки</label>
           <select id="demo-terminal">
@@ -132,58 +143,27 @@
             <option value="rejected">pending → rejected</option>
           </select>
         </div>
-
         <label class="toggle-row">
-          <span>
-            <strong>Изменить результат</strong>
-            <small>Сдвинуть свежую котировку на 1.5% при повторной проверке</small>
-          </span>
+          <span><strong>Изменить результат</strong><small>Сдвинуть свежую котировку на 1.5%</small></span>
           <input id="demo-rate-change" type="checkbox" role="switch">
         </label>
-
         <label class="toggle-row">
-          <span>
-            <strong>Ошибка CoinGecko</strong>
-            <small>Следующий запрос курса завершится контролируемой ошибкой</small>
-          </span>
+          <span><strong>Ошибка CoinGecko</strong><small>Следующий запрос курса завершится ошибкой</small></span>
           <input id="demo-quote-error" type="checkbox" role="switch">
         </label>
-
         <label class="toggle-row">
-          <span>
-            <strong>Техническая ошибка</strong>
-            <small>Показать безопасное сообщение без создания заявки</small>
-          </span>
+          <span><strong>Техническая ошибка</strong><small>Показать безопасное сообщение без заявки</small></span>
           <input id="demo-technical-error" type="checkbox" role="switch">
         </label>
+      </section>
 
+      <section class="settings-group settings-actions">
         <button class="button button-secondary button-wide" id="repeat-last-attempt" type="button" disabled>Повторить последний ключ</button>
+        <button class="button button-danger button-wide" id="reset-demo" type="button">Сбросить демо-данные</button>
         <p class="demo-feedback" id="demo-feedback" aria-live="polite"></p>
-      </aside>
+      </section>
     </div>
-
-    <section class="result-section" id="result-section" aria-labelledby="result-heading" hidden>
-      <div class="section-heading-row">
-        <div>
-          <p class="eyebrow">Последняя заявка</p>
-          <h2 id="result-heading">Результат операции</h2>
-        </div>
-      </div>
-      <div id="result-card"></div>
-    </section>
-
-    <section class="history-section" aria-labelledby="history-heading">
-      <div class="section-heading-row">
-        <div>
-          <p class="eyebrow">Только заявки обмена</p>
-          <h2 id="history-heading">История</h2>
-        </div>
-        <span class="history-count" id="history-count">0 заявок</span>
-      </div>
-      <div class="history-empty" id="history-empty">История пока пуста. Созданные заявки сохранятся в этом браузере.</div>
-      <div class="history-list" id="history-list"></div>
-    </section>
-  </main>
+  </dialog>
 
   <dialog class="modal" id="confirmation-modal" aria-labelledby="confirmation-title">
     <form method="dialog" class="modal-card" id="confirmation-form">
