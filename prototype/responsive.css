@@ -1,0 +1,15 @@
+@media (max-width: 640px) {
+  .history-item,
+  .history-item summary,
+  .history-main,
+  .history-details,
+  .history-details > span {
+    min-width: 0;
+  }
+
+  .history-main strong,
+  .history-details > span {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
