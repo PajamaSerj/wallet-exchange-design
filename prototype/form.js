@@ -173,16 +173,18 @@ async function onSubmit(event) {
 }
 
 function handleSubmissionError(error) {
-  let message = "Не удалось безопасно продолжить обмен. Заявка не создана.";
+  let message = "Не удалось выполнить обмен. Попробуйте ещё раз.";
+  let outcome = "technical";
   if (error?.message === "BALANCE_BECAME_INSUFFICIENT") {
     const pair = getPair();
-    message = `Баланс изменился. Можно обменять ${formatNumber(availableBalance(pair.source), 1)} ${pair.source}; заявка не создана.`;
-  } else if (error?.message === "DEMO_TECHNICAL_ERROR") {
-    message = "Техническая ошибка WX-DEMO-01. Обмен не создан.";
+    message = `Баланс изменился. Можно обменять ${formatNumber(availableBalance(pair.source), 1)} ${pair.source}.`;
+    outcome = "balance";
   } else if (error?.message === "DEMO_QUOTE_ERROR" || error?.name === "AbortError" || String(error?.message || "").startsWith("QUOTE_")) {
-    message = "Не удалось получить корректный курс CoinGecko. Заявка не создана.";
+    message = "Не удалось получить актуальный курс. Заявка не создана.";
+    outcome = "quote";
   }
   dom.formStatus.textContent = message;
+  showOutcome(outcome);
   announce(message);
   updateForm();
 }
