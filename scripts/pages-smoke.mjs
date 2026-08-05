@@ -4,7 +4,7 @@ const baseUrl = process.env.PROTOTYPE_URL;
 if (!baseUrl) throw new Error("PROTOTYPE_URL is required");
 
 const url = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-const assets = ["", "styles.css", "core.js", "form.js", "operations.js", "app.js"];
+const assets = ["", "styles.css", "responsive.css", "core.js", "form.js", "operations.js", "app.js"];
 
 for (const asset of assets) {
   const response = await fetch(new URL(asset, url), { redirect: "follow" });
@@ -77,8 +77,29 @@ if (!historyText.includes("Выполнена")) {
 await page.setViewportSize({ width: 390, height: 844 });
 await page.reload({ waitUntil: "domcontentloaded" });
 await page.locator(".exchange-card").waitFor({ state: "visible" });
-const mobileFits = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
-if (!mobileFits) throw new Error("Mobile layout has horizontal overflow");
+const mobileLayout = await page.evaluate(() => {
+  const overflow = [...document.querySelectorAll("body *")].map((element) => {
+    const rect = element.getBoundingClientRect();
+    return {
+      element: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${element.classList.length ? `.${[...element.classList].join(".")}` : ""}`,
+      left: Math.round(rect.left),
+      right: Math.round(rect.right),
+      width: Math.round(rect.width),
+      scrollWidth: element.scrollWidth,
+      clientWidth: element.clientWidth
+    };
+  }).filter((entry) => entry.left < -1 || entry.right > window.innerWidth + 1);
+
+  return {
+    fits: document.documentElement.scrollWidth <= window.innerWidth + 1,
+    viewportWidth: window.innerWidth,
+    documentWidth: document.documentElement.scrollWidth,
+    overflow: overflow.slice(0, 12)
+  };
+});
+if (!mobileLayout.fits) {
+  throw new Error(`Mobile layout has horizontal overflow: ${JSON.stringify(mobileLayout)}`);
+}
 await page.locator("#settings-open").click();
 await page.locator("#settings-dialog").waitFor({ state: "visible" });
 
