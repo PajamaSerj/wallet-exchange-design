@@ -25,19 +25,11 @@
   </header>
 
   <main class="app-shell">
-    <section class="wallet-strip" aria-labelledby="wallet-heading">
-      <h2 class="sr-only" id="wallet-heading">Кошельки</h2>
-      <div class="balance-grid" id="balance-grid" aria-live="polite"></div>
-    </section>
-
-    <section class="exchange-card" aria-labelledby="exchange-heading">
-      <div class="exchange-heading">
-        <div>
-          <p class="eyebrow">RUB ↔ USDT</p>
-          <h2 id="exchange-heading">Обмен</h2>
-        </div>
-        <span class="status-dot" id="quote-status-dot" aria-hidden="true" hidden></span>
-      </div>
+    <section class="exchange-card" aria-label="Форма обмена валюты">
+      <section class="wallet-inside" aria-labelledby="wallet-heading">
+        <h2 class="sr-only" id="wallet-heading">Кошельки</h2>
+        <div class="balance-grid" id="balance-grid" aria-live="polite"></div>
+      </section>
 
       <form id="exchange-form" novalidate>
         <div class="sr-only" aria-hidden="true">
@@ -87,19 +79,13 @@
         </button>
 
         <div class="quote-panel" id="quote-panel" aria-live="polite">
+          <span class="status-dot" id="quote-status-dot" aria-hidden="true"></span>
           <span id="quote-value">Загрузка курса…</span>
           <button class="quote-info" id="quote-updated" type="button" aria-label="Время обновления курса" data-tooltip="Курс загружается">ⓘ</button>
           <span id="quote-id" hidden></span>
         </div>
         <p class="form-status" id="form-status" aria-live="polite"></p>
       </form>
-    </section>
-
-    <section class="result-section" id="result-section" aria-labelledby="result-heading" hidden>
-      <div class="section-heading-row compact">
-        <h2 id="result-heading">Последняя заявка</h2>
-      </div>
-      <div id="result-card"></div>
     </section>
 
     <details class="history-section" id="history-details">
@@ -179,6 +165,15 @@
         <button class="button button-secondary" value="cancel" type="submit">Вернуться</button>
         <button class="button button-primary" id="confirm-operation" value="default" type="button">Подтвердить обмен</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog class="outcome-modal" id="outcome-modal" aria-labelledby="outcome-title" aria-describedby="outcome-message">
+    <form method="dialog" class="outcome-card">
+      <span class="status-pill" id="outcome-status">Выполнена</span>
+      <h2 id="outcome-title">Обмен выполнен</h2>
+      <p id="outcome-message">Подробности доступны в истории заявок.</p>
+      <button class="button button-primary button-wide" id="outcome-close" value="default" type="submit">Ок</button>
     </form>
   </dialog>
 
