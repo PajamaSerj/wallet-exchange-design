@@ -7,7 +7,7 @@
 |---|---|---|---|---|
 | CHAT-00 | Governance / Master | [`chat-00-governance.md`](chats/chat-00-governance.md) | IN PROGRESS | Каркас репозитория |
 | CHAT-01 | Requirements / Domain | [`chat-01-domain-analysis.md`](chats/chat-01-domain-analysis.md) | COMPLETED WITH OPEN ITEMS | `requirements-register.md`, `assumptions-decisions.md`, `traceability-matrix.md`, `acceptance-checklist.md`, Prompt Log |
-| CHAT-02 | System Design | [`chat-02-system-design.md`](chats/chat-02-system-design.md) | COMPLETED | SDD, 4 Mermaid-диаграммы, решения `DEC-036`–`DEC-040`, SDD-трассировка |
+| CHAT-02 | System Design | [`chat-02-system-design.md`](chats/chat-02-system-design.md) | COMPLETED | SDD, 4 Mermaid-диаграммы, `DEC-036`–`DEC-040`, SDD-трассировка, acceptance checks |
 | CHAT-03 | UX/UI | [`chat-03-ux-ui.md`](chats/chat-03-ux-ui.md) | NOT STARTED | TBD |
 | CHAT-04 | Gherkin | [`chat-04-gherkin.md`](chats/chat-04-gherkin.md) | NOT STARTED | TBD |
 | CHAT-05 | OpenAPI | [`chat-05-openapi.md`](chats/chat-05-openapi.md) | NOT STARTED | TBD |
@@ -31,10 +31,10 @@
 |---|---|
 | Цель | Сформировать высокоуровневый системный дизайн обмена RUB/USDT до `completed`/`rejected` |
 | Основные источники | Бриф, governance-база CHAT-01, acceptance checklist и prompt logs |
-| Результат | SDD из 17 разделов; контекстная, две sequence- и state-диаграммы; обновлённая SDD-трассировка |
+| Результат | SDD из 17 разделов; контекстная, две sequence- и state-диаграммы; обновлённая SDD-трассировка и этапный acceptance checklist |
 | Компоненты | UI/flow, котировки, расчёт/валидация, оркестратор заявки, баланс/резерв, шлюз дополнительной проверки, demo-хранилище |
 | Ключевые решения | Явный demo-переключатель `pending`; логические компоненты; атомарные бизнес-границы; признак актуальности баланса; защита повторных terminal-событий |
-| Ключевые исправления ИИ | Убрана избыточная технологическая детализация; скрытый триггер `pending` заменён прозрачным; исключено зависание в `created`; предотвращён повторный финансовый эффект |
+| Ключевые исправления ИИ | Убрана лишняя технологическая детализация; после повторной сверки восстановлены обязательные 15 шагов, атрибутная модель, полная матрица ошибок и handoff-таблицы; скрытый триггер `pending` заменён прозрачным; предотвращён повторный финансовый эффект |
 | Открытые вопросы | `OQ-M-01`, `OQ-M-02`, `OQ-M-04` (`MEDIUM`); новых `BLOCKER`/`HIGH` нет |
 | Следующие чаты | CHAT-03 UX/UI, CHAT-04 Gherkin, CHAT-05 OpenAPI, затем CHAT-06 Integration |
 
