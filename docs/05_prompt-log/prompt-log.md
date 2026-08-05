@@ -10,7 +10,7 @@
 | CHAT-02 | System Design | [`chat-02-system-design.md`](chats/chat-02-system-design.md) | COMPLETED | SDD, Mermaid, решения и SDD-трассировка |
 | CHAT-03 | UX/UI | [`chat-03-ux-ui.md`](chats/chat-03-ux-ui.md), [`manual review`](chats/chat-03-ux-ui-review.md) | COMPLETED — MANUALLY ACCEPTED / PUBLICATION CHECK PENDING | финальный прототип, UX-spec, governance, Pages workflow и public smoke |
 | CHAT-04 | Gherkin | [`chat-04-gherkin.md`](chats/chat-04-gherkin.md) | COMPLETED | 3 согласованных Gherkin-сценария и этапный Prompt Log |
-| CHAT-05 | OpenAPI | [`chat-05-openapi.md`](chats/chat-05-openapi.md) | NOT STARTED | TBD |
+| CHAT-05 | OpenAPI | [`chat-05-openapi.md`](chats/chat-05-openapi.md) | COMPLETED | OpenAPI JSON, 3 файла примеров и этапный Prompt Log |
 | CHAT-06 | Integration | [`chat-06-integration.md`](chats/chat-06-integration.md) | NOT STARTED | TBD |
 | CHAT-07 | Final Audit | [`chat-07-final-audit.md`](chats/chat-07-final-audit.md) | NOT STARTED | TBD |
 
@@ -65,5 +65,21 @@
 | Противоречия | Блокирующих нет; зафиксировано только расхождение имени `PROJECT_BRIEF.md` и фактического `Wallet_Exchange_Project_Brief.md` |
 | Дополнительные сценарии | Отказ от нового результата, достаточный изменившийся баланс, ошибка курса, идемпотентный повтор и async-переходы перечислены только как предложения |
 | Следующие чаты | CHAT-05 OpenAPI не начат; дальнейшие этапы выполняются отдельно |
+
+## Сводная запись CHAT-05
+
+| Поле | Значение |
+|---|---|
+| Цель | Подготовить OpenAPI 3.0.3 JSON-контракт ровно одного метода создания заявки на обмен |
+| Основные источники | Бриф, governance, SDD и sequence/state diagrams, финальный UX/UI и прототип, три Gherkin-сценария, Prompt Logs CHAT-01–04 |
+| Endpoint | `POST /exchange-requests`; обязательный `Idempotency-Key` |
+| Request | wallet context, RUB/USDT pair, целая source amount, подтверждённые quote/rate/time/target и `balanceVersion` |
+| Success | `201` для первой обработки, `200` для идемпотентного повтора; created/pending/completed/rejected с status-specific result |
+| Ошибки | `400 INVALID_REQUEST`, `409 EXCHANGE_CONDITIONS_CHANGED`, `422 INSUFFICIENT_BALANCE`, `503 RATE_UNAVAILABLE`, `500 INTERNAL_ERROR` |
+| Результат | Содержательный `openapi.json`, валидные request/success/error examples и полный этапный Prompt Log |
+| Проверки | JSON parser, `validate-artifacts.py`, официальный OpenAPI 3.0 schema profile, `$ref`/examples/scope/status/security/demo checks |
+| Противоречия | Блокирующих нет; `OQ-M-01`/`OQ-M-02` не блокируют API |
+| Ключевые исправления ИИ | `rejected` сохранён как business success; исключены demo-поля, security, лишние endpoints/error codes и неподтверждённые будущие поля |
+| Следующие чаты | CHAT-06 и CHAT-07 не начинались |
 
 Каждый журнал содержит цель, входы, использованные промпты, результаты, допущения ИИ, ошибки или риски, способ обнаружения, ручные исправления, нерешённые вопросы и связанные требования.
