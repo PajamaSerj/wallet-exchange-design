@@ -3,11 +3,185 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Wallet Exchange — Scaffold</title>
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Концептуальный прототип обмена RUB и USDT в демонстрационном кошельке">
+  <title>Wallet Exchange — RUB / USDT</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main><h1>Wallet Exchange</h1><p>Статус: SCAFFOLD. Прототип ещё не создан.</p></main>
+  <a class="skip-link" href="#exchange-form">Перейти к форме обмена</a>
+
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">W</span>
+        <div>
+          <p class="eyebrow">Демонстрационный кошелёк</p>
+          <h1>Обмен валюты</h1>
+        </div>
+      </div>
+      <button class="icon-button settings-button" id="settings-open" type="button" aria-label="Открыть демонстрационные настройки" title="Демонстрационные настройки">⚙</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="exchange-card" aria-label="Форма обмена валюты">
+      <section class="wallet-inside" aria-labelledby="wallet-heading">
+        <h2 class="sr-only" id="wallet-heading">Кошельки</h2>
+        <div class="balance-grid" id="balance-grid" aria-live="polite"></div>
+      </section>
+
+      <form id="exchange-form" novalidate>
+        <div class="sr-only" aria-hidden="true">
+          <input type="radio" name="direction" value="RUB_USDT" checked>
+          <input type="radio" name="direction" value="USDT_RUB">
+        </div>
+
+        <div class="exchange-pair">
+          <section class="currency-panel source-panel" aria-labelledby="source-label">
+            <div class="currency-panel-top">
+              <span class="panel-label" id="source-label">Вы отдаёте</span>
+              <button class="text-button" id="exchange-all" type="button">Всё</button>
+            </div>
+            <div class="currency-line">
+              <span class="currency-chip" id="source-currency">RUB</span>
+              <div class="money-input" id="money-input-wrap">
+                <input id="source-amount" name="sourceAmount" type="text" inputmode="numeric" autocomplete="off" aria-describedby="amount-help amount-error" placeholder="0">
+              </div>
+            </div>
+            <div class="input-support-row">
+              <span id="amount-help">Минимум: —</span>
+              <span id="available-hint">Можно обменять: —</span>
+            </div>
+            <p class="field-error" id="amount-error" role="alert"></p>
+          </section>
+
+          <button class="swap-button" id="swap-direction" type="button" aria-label="Поменять валюты местами" title="Поменять направление обмена">⇄</button>
+
+          <section class="currency-panel target-panel" aria-labelledby="target-label">
+            <div class="currency-panel-top">
+              <span class="panel-label" id="target-label">Вы получите</span>
+            </div>
+            <div class="currency-line">
+              <span class="currency-chip" id="target-currency">USDT</span>
+              <div class="target-placeholder" id="target-placeholder">Введите сумму</div>
+              <div class="target-result" id="target-result" hidden>
+                <strong id="target-amount">0.0</strong>
+              </div>
+            </div>
+            <p class="target-note">Без комиссии и спреда</p>
+          </section>
+        </div>
+
+        <button class="button button-primary button-wide exchange-submit" id="submit-exchange" type="submit" disabled>
+          <span class="button-label">Обмен</span>
+          <span class="button-spinner" aria-hidden="true"></span>
+        </button>
+
+        <div class="quote-panel" id="quote-panel" aria-live="polite">
+          <span class="status-dot" id="quote-status-dot" aria-hidden="true"></span>
+          <span id="quote-value">Загрузка курса…</span>
+          <button class="quote-info" id="quote-updated" type="button" aria-label="Время обновления курса" data-tooltip="Курс загружается">ⓘ</button>
+          <span id="quote-id" hidden></span>
+        </div>
+        <p class="form-status" id="form-status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <details class="history-section" id="history-details">
+      <summary>
+        <span>История заявок</span>
+        <span class="history-count" id="history-count">0 заявок</span>
+      </summary>
+      <div class="history-body">
+        <div class="history-empty" id="history-empty">История пока пуста. Созданные заявки сохранятся в этом браузере.</div>
+        <div class="history-list" id="history-list"></div>
+      </div>
+    </details>
+  </main>
+
+  <dialog class="settings-drawer" id="settings-dialog" aria-labelledby="settings-heading">
+    <div class="settings-shell">
+      <div class="settings-heading">
+        <div>
+          <p class="eyebrow">Только демонстрация</p>
+          <h2 id="settings-heading">Настройки сценариев</h2>
+        </div>
+        <button class="icon-button" id="settings-close" type="button" aria-label="Закрыть настройки">×</button>
+      </div>
+      <p class="settings-intro">Эти элементы не являются финансовыми правилами продукта.</p>
+
+      <section class="settings-group" aria-labelledby="balance-settings-heading">
+        <h3 id="balance-settings-heading">Кошельки и балансы</h3>
+        <div id="demo-balance-controls"></div>
+      </section>
+
+      <section class="settings-group" aria-labelledby="scenario-settings-heading">
+        <h3 id="scenario-settings-heading">Сценарии</h3>
+        <label class="toggle-row">
+          <span><strong>Дополнительная проверка</strong><small>Создать заявку со статусом pending</small></span>
+          <input id="demo-async" type="checkbox" role="switch">
+        </label>
+        <div class="demo-subsection" id="async-options" hidden>
+          <label for="demo-terminal">Результат проверки</label>
+          <select id="demo-terminal">
+            <option value="completed">pending → completed</option>
+            <option value="rejected">pending → rejected</option>
+          </select>
+        </div>
+        <label class="toggle-row">
+          <span><strong>Изменить результат</strong><small>Сдвинуть свежую котировку на 1.5%</small></span>
+          <input id="demo-rate-change" type="checkbox" role="switch">
+        </label>
+        <label class="toggle-row">
+          <span><strong>Ошибка CoinGecko</strong><small>Следующий запрос курса завершится ошибкой</small></span>
+          <input id="demo-quote-error" type="checkbox" role="switch">
+        </label>
+        <label class="toggle-row">
+          <span><strong>Техническая ошибка</strong><small>Показать безопасное сообщение без заявки</small></span>
+          <input id="demo-technical-error" type="checkbox" role="switch">
+        </label>
+      </section>
+
+      <section class="settings-group settings-actions">
+        <button class="button button-secondary button-wide" id="repeat-last-attempt" type="button" disabled>Повторить последний ключ</button>
+        <button class="button button-danger button-wide" id="reset-demo" type="button">Сбросить демо-данные</button>
+        <p class="demo-feedback" id="demo-feedback" aria-live="polite"></p>
+      </section>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="confirmation-modal" aria-labelledby="confirmation-title">
+    <form method="dialog" class="modal-card" id="confirmation-form">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow" id="confirmation-eyebrow">Подтверждение</p>
+          <h2 id="confirmation-title">Проверьте условия</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Закрыть окно" type="submit">×</button>
+      </div>
+      <div id="confirmation-content"></div>
+      <div class="modal-actions">
+        <button class="button button-secondary" value="cancel" type="submit">Вернуться</button>
+        <button class="button button-primary" id="confirm-operation" value="default" type="button">Подтвердить обмен</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="outcome-modal" id="outcome-modal" aria-labelledby="outcome-title" aria-describedby="outcome-message">
+    <form method="dialog" class="outcome-card">
+      <span class="status-pill" id="outcome-status">Выполнена</span>
+      <h2 id="outcome-title">Обмен выполнен</h2>
+      <p id="outcome-message">Подробности доступны в истории заявок.</p>
+      <button class="button button-primary button-wide" id="outcome-close" value="default" type="submit">Ок</button>
+    </form>
+  </dialog>
+
+  <div class="sr-only" id="live-region" aria-live="assertive"></div>
+
+  <script src="core.js"></script>
+  <script src="form.js"></script>
+  <script src="operations.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
