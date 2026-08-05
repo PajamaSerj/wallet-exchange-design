@@ -1,43 +1,52 @@
-function renderResult(requestId) {
-  const request = state.requests.find((item) => item.id === requestId) || state.requests[0];
-  if (!request) {
-    dom.resultSection.hidden = true;
-    return;
+const BUSINESS_STATUS_LABELS = Object.freeze({
+  created: "Заявка создана",
+  pending: "В обработке",
+  completed: "Выполнена",
+  rejected: "Отклонена"
+});
+
+const OUTCOME_COPY = Object.freeze({
+  completed: {
+    status: "Выполнена",
+    title: "Обмен выполнен",
+    message: "Подробности доступны в истории заявок."
+  },
+  pending: {
+    status: "В обработке",
+    title: "Заявка принята и передана на проверку",
+    message: "Ход проверки можно посмотреть в истории заявок."
+  },
+  rejected: {
+    status: "Отклонена",
+    title: "Обмен отклонён",
+    message: "Подробности доступны в истории заявок."
+  },
+  technical: {
+    status: "Не выполнено",
+    title: "Не удалось выполнить обмен",
+    message: "Попробуйте ещё раз. Заявка не создана."
+  },
+  quote: {
+    status: "Не выполнено",
+    title: "Не удалось выполнить обмен",
+    message: "Не удалось получить актуальный курс. Заявка не создана."
+  },
+  balance: {
+    status: "Не выполнено",
+    title: "Не удалось выполнить обмен",
+    message: "Баланс изменился. Проверьте доступную сумму и повторите попытку."
   }
+});
 
-  dom.resultSection.hidden = false;
-  const statusText = { created: "Создана", pending: "На проверке", completed: "Выполнена", rejected: "Отклонена" }[request.status];
-  const targetShown = request.status === "completed" ? request.actualTargetAmount : request.confirmedTargetAmount;
-  const rateShown = request.status === "completed" ? request.actualRate : request.confirmedRate;
-
-  let message = "";
-  let action = "";
-  if (request.status === "pending") {
-    message = `${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency} находится в резерве. Фактический результат может измениться.`;
-    action = `<button class="button button-primary" type="button" data-finalize="${request.id}">Завершить демо-проверку</button>`;
-  } else if (request.status === "completed") {
-    const asyncDetail = request.async && request.actualRate !== request.confirmedRate
-      ? ` Подтверждённый курс: ${formatNumber(request.confirmedRate, 2)}; фактический demo-курс: ${formatNumber(request.actualRate, 2)}.`
-      : "";
-    message = `Списано ${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency}, зачислено ${formatNumber(request.actualTargetAmount, 1)} ${request.targetCurrency}.${asyncDetail}`;
-  } else if (request.status === "rejected") {
-    message = `Обмен не выполнен. Резерв ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency} освобождён.`;
-  }
-
-  dom.resultCard.innerHTML = `
-    <article class="result-card ${request.status}">
-      <div class="result-card-header">
-        <div><h3>Заявка ${request.id}</h3><span class="history-time">${formatDate(request.createdAt)}</span></div>
-        <span class="status-pill ${request.status}">${statusText}</span>
-      </div>
-      <div class="result-summary">
-        <div class="result-metric"><span>Отдано</span><strong>${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency}</strong></div>
-        <div class="result-metric"><span>${request.status === "completed" ? "Получено" : "Подтверждено"}</span><strong>${formatNumber(targetShown, 1)} ${request.targetCurrency}</strong></div>
-        <div class="result-metric"><span>Курс</span><strong>1 USDT = ${formatNumber(rateShown, 2)} RUB</strong></div>
-      </div>
-      <p class="result-message">${message}</p>
-      <div class="result-actions">${action}</div>
-    </article>`;
+function showOutcome(kind) {
+  const copy = OUTCOME_COPY[kind] || OUTCOME_COPY.technical;
+  dom.outcomeStatus.className = `status-pill outcome-${kind}`;
+  dom.outcomeStatus.textContent = copy.status;
+  dom.outcomeTitle.textContent = copy.title;
+  dom.outcomeMessage.textContent = copy.message;
+  if (typeof dom.outcomeModal.showModal === "function") dom.outcomeModal.showModal();
+  else dom.outcomeModal.setAttribute("open", "");
+  dom.outcomeClose.focus();
 }
 
 function renderHistory() {
@@ -45,26 +54,40 @@ function renderHistory() {
   dom.historyCount.textContent = `${requests.length} ${pluralize(requests.length, ["заявка", "заявки", "заявок"])}`;
   dom.historyEmpty.hidden = requests.length > 0;
   dom.historyList.innerHTML = requests.map((request) => {
-    const statusLabel = { created: "Создана", pending: "Pending", completed: "Completed", rejected: "Rejected" }[request.status];
+    const statusLabel = BUSINESS_STATUS_LABELS[request.status] || "Статус неизвестен";
     const target = request.actualTargetAmount ?? request.confirmedTargetAmount;
-    const reserve = request.status === "pending" ? `<span>Резерв: ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency}</span>` : "";
+    const rate = request.actualRate ?? request.confirmedRate;
+    const reserve = request.status === "pending"
+      ? `<span><b>Резерв:</b> ${formatSourceAmount(request.reservedAmount)} ${request.sourceCurrency}</span>`
+      : "";
     const fact = request.async && request.status === "completed" && request.actualRate !== request.confirmedRate
-      ? `<span>Фактический курс: ${formatNumber(request.actualRate, 2)} RUB/USDT</span>` : "";
+      ? `<span><b>Подтверждённый курс:</b> ${formatNumber(request.confirmedRate, 2)} RUB/USDT</span>`
+      : "";
+    const pendingAction = request.status === "pending"
+      ? `<button class="button button-secondary history-action" type="button" data-finalize="${request.id}">Завершить демо-проверку</button>`
+      : "";
+    const targetLabel = request.status === "completed" ? "Получено" : "Расчётная сумма";
     return `
-      <article class="history-item" data-request-id="${request.id}">
-        <div class="history-main">
-          <strong>${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency} → ${formatNumber(target, 1)} ${request.targetCurrency}</strong>
-          <small>${formatDate(request.createdAt)} · ${request.sourceCurrency} → ${request.targetCurrency}</small>
-        </div>
-        <span class="status-pill ${request.status}">${statusLabel}</span>
+      <details class="history-item" data-request-id="${request.id}">
+        <summary>
+          <div class="history-main">
+            <strong>${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency} → ${formatNumber(target, 1)} ${request.targetCurrency}</strong>
+            <small>${formatDate(request.createdAt)}</small>
+          </div>
+          <span class="status-pill ${request.status}">${statusLabel}</span>
+        </summary>
         <div class="history-details">
-          <span>Заявка: ${request.id}</span>
-          <span>Котировка: ${request.confirmedQuoteId}</span>
-          <span>Курс: ${formatNumber(request.confirmedRate, 2)} RUB/USDT</span>
+          <span><b>Дата:</b> ${formatDate(request.createdAt)}</span>
+          <span><b>Направление:</b> ${request.sourceCurrency} → ${request.targetCurrency}</span>
+          <span><b>Отдано:</b> ${formatSourceAmount(request.sourceAmount)} ${request.sourceCurrency}</span>
+          <span><b>${targetLabel}:</b> ${formatNumber(target, 1)} ${request.targetCurrency}</span>
+          <span><b>Курс:</b> ${formatNumber(rate, 2)} RUB/USDT</span>
+          <span><b>ID заявки:</b> ${request.id}</span>
+          <span><b>ID котировки:</b> ${request.confirmedQuoteId}</span>
           ${reserve}${fact}
-          <button class="history-open" type="button" data-open-result="${request.id}">Открыть результат</button>
+          ${pendingAction}
         </div>
-      </article>`;
+      </details>`;
   }).join("");
 }
 
@@ -112,11 +135,10 @@ function renderDemo() {
   renderBalanceControls();
 }
 
-function renderAll(resultId = null) {
+function renderAll() {
   renderBalances();
   renderDemo();
   renderHistory();
-  renderResult(resultId);
   updateForm();
 }
 
@@ -273,20 +295,13 @@ function bindEvents() {
     const returned = processAttempt({ key });
     const unchanged = before === JSON.stringify(state.balances);
     dom.demoFeedback.textContent = `Возвращена заявка ${returned.id}. Баланс и резерв ${unchanged ? "не изменены" : "проверены"}.`;
-    renderResult(returned.id);
+    renderAll();
     announce("Повторный ключ вернул существующую заявку без нового финансового эффекта.");
   });
 
-  dom.resultCard.addEventListener("click", (event) => {
+  dom.historyList.addEventListener("click", (event) => {
     const button = event.target.closest("[data-finalize]");
     if (button) finalizePending(button.dataset.finalize);
-  });
-
-  dom.historyList.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-open-result]");
-    if (!button) return;
-    renderResult(button.dataset.openResult);
-    dom.resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   dom.resetDemo.addEventListener("click", () => {
