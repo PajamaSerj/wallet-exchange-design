@@ -8,7 +8,7 @@
 | CHAT-00 | Governance / Master | [`chat-00-governance.md`](chats/chat-00-governance.md) | IN PROGRESS | Каркас репозитория |
 | CHAT-01 | Requirements / Domain | [`chat-01-domain-analysis.md`](chats/chat-01-domain-analysis.md) | COMPLETED WITH OPEN ITEMS | `requirements-register.md`, `assumptions-decisions.md`, `traceability-matrix.md`, `acceptance-checklist.md`, Prompt Log |
 | CHAT-02 | System Design | [`chat-02-system-design.md`](chats/chat-02-system-design.md) | COMPLETED | SDD, 4 Mermaid-диаграммы, `DEC-036`–`DEC-040`, SDD-трассировка, acceptance checks |
-| CHAT-03 | UX/UI | [`chat-03-ux-ui.md`](chats/chat-03-ux-ui.md) | COMPLETED WITH MEDIUM OPEN ITEMS | статический прототип, UX-spec, link doc, 8 screenshots, UX-трассировка, acceptance checks |
+| CHAT-03 | UX/UI | [`chat-03-ux-ui.md`](chats/chat-03-ux-ui.md), [`manual review`](chats/chat-03-ux-ui-review.md) | UX REVIEW — AWAITING MANUAL SMOKE | переработанный прототип; документация и screenshots ожидают подтверждения UI |
 | CHAT-04 | Gherkin | [`chat-04-gherkin.md`](chats/chat-04-gherkin.md) | NOT STARTED | TBD |
 | CHAT-05 | OpenAPI | [`chat-05-openapi.md`](chats/chat-05-openapi.md) | NOT STARTED | TBD |
 | CHAT-06 | Integration | [`chat-06-integration.md`](chats/chat-06-integration.md) | NOT STARTED | TBD |
@@ -44,11 +44,11 @@
 |---|---|
 | Цель | Реализовать интерактивный desktop/mobile-прототип, строго следующий SDD, и подготовить UX-документацию этапа 3 |
 | Основные источники | Бриф, SDD и диаграммы, governance CHAT-01/02, Prompt Logs предыдущих этапов, полный промпт CHAT-03 |
-| Результат | HTML/CSS/JS без сборщика; реальный CoinGecko; 25 UX-состояний; localStorage; sync/async; 8 скриншотов; UX-spec и link doc |
-| Ключевые UX-решения | Деловая responsive-композиция; однозначный курс; modal normal/changed; явная demo-панель; карточная локальная история; самостоятельные токены |
+| Результат | Переработанный HTML/CSS/JS: компактные кошельки, двухблочная форма, settings drawer и раскрывающаяся история; прежние screenshots и UX-документация ожидают smoke-approval |
+| Ключевые UX-решения | Форма как главный объект; RUB/USDT-блоки со swap; удержание approximate balance; demo-настройки под шестерёнкой; компактная раскрывающаяся история |
 | Ключевые исправления ИИ | Устранён скрытый trigger pending; changed-result сравнивается после округления; pending не списывает total; terminal убирает резерв; repeat key не создаёт дубль; Bidzaar не копируется |
-| Проверки | Node syntax; Chromium/Playwright сценарии; desktop/mobile; формулы, валидация, reserve lifecycle, idempotency, localStorage serialization; validator и Markdown links |
+| Проверки | Для текущей итерации: Node syntax, HTML/DOM ID и изолированные бизнес-проверки; браузерная автоматизация и новые screenshots намеренно не запускались |
 | Открытые вопросы | `OQ-M-01`, `OQ-M-02`, `OQ-M-04` (`MEDIUM`); GitHub Pages не заявлен рабочим без публикации |
-| Следующие чаты | CHAT-04 Gherkin, CHAT-05 OpenAPI, CHAT-06 Integration, CHAT-07 Final Audit |
+| Следующие чаты | Сначала ручной smoke-тест и синхронизация UX-документации; затем CHAT-04/05/06/07 |
 
 Каждый журнал должен содержать цель, входы, использованные промпты, результаты, допущения ИИ, ошибки или галлюцинации, способ обнаружения, ручные исправления, нерешённые вопросы и связанные требования.
