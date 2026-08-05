@@ -1,0 +1,27 @@
+stateDiagram-v2
+    [*] --> created: заявка создана по подтверждённым условиям
+
+    created --> completed: синхронное выполнение\nсписание + зачисление
+    created --> rejected: синхронное отклонение/ошибка\nбез финансового изменения
+    created --> pending: резерв успешно создан\nи проверка принята
+
+    pending --> completed: резерв списан\nцелевой баланс увеличен по факту
+    pending --> rejected: резерв освобождён\nцелевой баланс не изменён
+
+    completed --> [*]
+    rejected --> [*]
+
+    note right of pending
+      Единственное состояние
+      с активным резервом
+    end note
+
+    note right of completed
+      Терминальное состояние.
+      Повторное событие без эффекта.
+    end note
+
+    note right of rejected
+      Терминальное состояние.
+      cancelled/expired отсутствуют.
+    end note
