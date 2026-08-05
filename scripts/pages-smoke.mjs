@@ -33,6 +33,22 @@ await page.waitForFunction(() => document.querySelector("#quote-value")?.textCon
   timeout: 30_000
 });
 
+const sourcePlaceholder = await page.locator("#source-amount").getAttribute("placeholder");
+if (sourcePlaceholder !== "Введите сумму") {
+  throw new Error(`Unexpected source placeholder: ${sourcePlaceholder}`);
+}
+const targetPrompt = (await page.locator("#target-placeholder").textContent())?.trim();
+if (targetPrompt) {
+  throw new Error(`Target panel must not prompt for input: ${targetPrompt}`);
+}
+
+await page.locator("#swap-direction").click();
+const usdtAvailableHint = (await page.locator("#available-hint").textContent())?.trim();
+if (usdtAvailableHint !== "Можно обменять: 1 250 USDT") {
+  throw new Error(`Unexpected integer exchangeable balance: ${usdtAvailableHint}`);
+}
+await page.locator("#swap-direction").click();
+
 await page.locator("#settings-open").click();
 await page.locator("#settings-dialog").waitFor({ state: "visible" });
 await page.locator("#settings-close").click();
