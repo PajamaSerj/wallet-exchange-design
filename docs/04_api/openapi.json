@@ -1,0 +1,10 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Wallet Exchange API",
+    "version": "0.0.0",
+    "description": "SCAFFOLD ONLY. API contract has not been designed yet."
+  },
+  "paths": {},
+  "x-project-status": "SCAFFOLD"
+}
