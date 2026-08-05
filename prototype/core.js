@@ -79,10 +79,10 @@ function cacheDom() {
     "money-input-wrap", "exchange-all", "swap-direction", "submit-exchange", "form-status",
     "settings-open", "settings-close", "settings-dialog", "demo-balance-controls", "demo-async",
     "async-options", "demo-terminal", "demo-rate-change", "demo-quote-error", "demo-technical-error",
-    "repeat-last-attempt", "demo-feedback", "result-section", "result-card", "history-details",
-    "history-count", "history-empty", "history-list", "confirmation-modal", "confirmation-form",
-    "confirmation-title", "confirmation-eyebrow", "confirmation-content", "confirm-operation",
-    "live-region", "reset-demo"
+    "repeat-last-attempt", "demo-feedback", "history-details", "history-count", "history-empty",
+    "history-list", "confirmation-modal", "confirmation-form", "confirmation-title",
+    "confirmation-eyebrow", "confirmation-content", "confirm-operation", "outcome-modal",
+    "outcome-status", "outcome-title", "outcome-message", "outcome-close", "live-region", "reset-demo"
   ];
   ids.forEach((id) => { dom[toCamel(id)] = document.getElementById(id); });
   dom.directionInputs = [...document.querySelectorAll('input[name="direction"]')];
