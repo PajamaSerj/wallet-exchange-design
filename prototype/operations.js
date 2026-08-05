@@ -8,13 +8,13 @@ async function confirmPendingAttempt() {
     pendingConfirmation = null;
     dom.confirmationModal.close();
     dom.sourceAmount.value = "";
-    dom.formStatus.textContent = request.status === "pending"
-      ? "Заявка создана и передана на дополнительную проверку."
-      : "Обмен выполнен.";
-    renderAll(request.id);
+    dom.formStatus.textContent = "";
+    renderAll();
+    showOutcome(request.status);
     announce(request.status === "pending" ? "Заявка ожидает дополнительной проверки." : "Обмен успешно выполнен.");
   } catch (error) {
     dom.confirmationModal.close();
+    pendingConfirmation = null;
     handleSubmissionError(error);
   } finally {
     setProcessing(false);
@@ -106,7 +106,8 @@ function finalizePending(requestId) {
 
   request.completedAt = Date.now();
   saveState();
-  renderAll(request.id);
+  renderAll();
+  showOutcome(request.status);
   announce(request.status === "completed"
     ? "Дополнительная проверка завершена. Обмен выполнен."
     : "Дополнительная проверка завершена. Обмен отклонён, резерв освобождён.");
