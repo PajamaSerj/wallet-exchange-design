@@ -43,7 +43,7 @@
 | Высокоуровневый системный дизайн | [wallet-exchange-sdd.md](docs/01_system-design/wallet-exchange-sdd.md) |
 | Happy Path и негативные Gherkin-сценарии | [exchange-request.feature](docs/03_scenarios/exchange-request.feature) |
 | OpenAPI JSON метода создания заявки | [openapi.json](docs/04_api/openapi.json) |
-| Журнал работы с ИИ и ручных исправлений | [prompt-log.md](docs/05_prompt-log/prompt-log.md) |
+| Журнал работы с ИИ и ручных исправлений(описание промтов, не дословные) | [prompt-log.md](docs/05_prompt-log/prompt-log.md) |
 | Итоговое заключение по проверке | [final-conclusion.md](docs/06_qa/final-conclusion.md) |
 
 ## Локальный запуск
